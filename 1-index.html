@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Hello World</title>
+		<style>* {padding: 0; margin: 0}</style>
+	</head>
+	<script src="js/pixi.min.js"></script>
+	<body>
+		<script type="text/javascript">
+			//Create a Pixi Application / set up canvas
+			let app = new PIXI.Application({
+				width: 256,         // default: 800
+				height: 256,        // default: 600
+				antialias: true,    // default: false
+				transparent: false, // default: false
+				resolution: 1       // default: 1
+			});
+			
+			//Add the canvas that Pixi automatically created for you to the HTML document
+			document.body.appendChild(app.view);
+			
+			//change background canvas
+			app.renderer.backgroundColor = 0x061639;
+			
+			//resize canvas
+			app.renderer.autoResize = true;
+			app.renderer.resize(256, 256);
+			
+			//fill canvas to full window
+			/*app.renderer.view.style.position = "absolute";
+			app.renderer.view.style.display = "block";
+			app.renderer.autoResize = true;
+			app.renderer.resize(window.innerWidth, window.innerHeight);*/
+			
+			
+			
+			//######################################
+			//Loading images into the texture cache 
+			//######################################
+			/*PIXI.loader
+				.add("images/cat.png")
+			//.add("images/cat_2.png")
+			//.add("images/cat_3.png")
+				.load(setup);
+
+			function setup() {
+				//This code will run when the loader has finished loading the image
+				let cat = new PIXI.Sprite(PIXI.loader.resources["images/cat.png"].texture);
+
+
+				//Add the cat to the stage
+				app.stage.addChild(cat);
+
+				//remove the cat to the stage
+				//app.stage.removeChild(cat)
+			}*/
+			
+			
+			
+			//######################################
+			//Loading multiple images
+			//######################################
+			PIXI.loader
+				.add([
+					"images/cat.png",
+					"images/cat_2.png",
+					"images/cat_3.png"
+				])
+				.on("progress", loadProgressHandler)
+				.load(setup);
+			
+			function loadProgressHandler() {
+				console.log("loading");
+			}
+			
+			function setup() {
+				//Create the `cat` sprite
+				let cat = new PIXI.Sprite(PIXI.loader.resources["images/cat.png"].texture);
+
+				//Change the sprite's position
+				cat.x = 96;
+				cat.y = 96;
+				
+				//Change the sprite's size
+				cat.width = 80;
+				cat.height = 120;
+				
+				//Change the sprite's width and height proportionately / half size
+				cat.scale.x = 0.5;
+				cat.scale.y = 0.5;
+				
+				//Rotate sprite
+				cat.anchor.x = 0.5; //set x point to pivot
+				cat.anchor.y = 0.5; //set y point to pivot
+				cat.rotation = 0.5;
+				
+				//Add the cat to the stage so you can see it
+				app.stage.addChild(cat);
+			}
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+		</script>
+	</body>
+</html>

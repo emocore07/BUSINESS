@@ -1,0 +1,285 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Hello World</title>
+		<style>* {padding: 0; margin: 0}</style>
+	</head>
+	<script src="js/pixi.min.js"></script>
+	<body>
+		<script type="text/javascript">
+			//Aliases
+			let Application = PIXI.Application,
+				Container = PIXI.Container,
+				loader = PIXI.loader,
+				resources = PIXI.loader.resources,
+				TextureCache = PIXI.utils.TextureCache,
+				Sprite = PIXI.Sprite,
+				Rectangle = PIXI.Rectangle;
+			
+			//Create a Pixi Application / set up canvas
+			let app = new Application({
+				width: 500,         // default: 800
+				height: 500,        // default: 600
+				antialias: true,    // default: false
+				transparent: false, // default: false
+				resolution: 1       // default: 1
+			});
+			document.body.appendChild(app.view);
+			app.renderer.backgroundColor = 0x061639;
+			
+			
+			PIXI.loader
+				.add("images/sprites/data.json")
+				.load(setup);
+			
+			let dungeon, player2, treasure, id, door;
+			let message = new Text("");
+			
+			function setup() {
+
+				let id = loader.resources["images/sprites/data.json"].textures;
+				
+				dungeon = new Sprite(id["dungeon.png"]);
+				app.stage.addChild(dungeon);
+				
+				player = new Sprite(id["player.png"]);
+				app.stage.addChild(player);
+				player.x = 50;
+				player.y = app.stage.height / 2 - player.height / 2;
+				player.vx = 0;
+				player.vy = 0;
+				
+				treasure = new Sprite(id["treasure.png"]);
+				app.stage.addChild(treasure);
+				//Position the treasure next to the right edge of the canvas
+				treasure.x = app.stage.width - treasure.width - 48;
+				treasure.y = app.stage.height / 2 - treasure.height / 2;
+				app.stage.addChild(treasure);
+				
+				//Make the exit door
+				door = new Sprite(id["door.png"]);
+				door.position.set(26, 0);
+				app.stage.addChild(door);
+
+				
+				//Make the player 2 - enemy
+				let numberOfPlayer2 = 6,
+					spacing = 48,
+					xOffset = 150;
+				
+				//Make as many player 2 as there are `numberOfPlayer2`
+				for (let i = 0; i < numberOfPlayer2; i++) {
+
+					//Make a player 2
+					player2 = new Sprite(id["player2.png"]);
+
+					//Space each player 2 horizontally according to the `spacing` value.
+					//`xOffset` determines the point from the left of the screen
+					//at which the first player 2 should be added.
+					let x = spacing * i + xOffset;
+
+					//Give the player 2 a random y position
+					//(`randomInt` is a custom function - see below)
+					let y = randomInt(0, app.stage.height - player2.height);
+
+					//Set the player 2's position
+					player2.x = x;
+					player2.y = y;
+					
+					//Add the player 2 sprite to the stage
+					app.stage.addChild(player2);
+					
+					
+					
+				}
+				
+				//Capture the keyboard arrow keys
+				let left = keyboard(37),
+					up = keyboard(38),
+					right = keyboard(39),
+					down = keyboard(40);
+
+				//Left arrow key `press` method
+				left.press = () => {
+					//Change the cat's velocity when the key is pressed
+					player.vx = -3;
+					player.vy = 0;
+				};
+				//Left arrow key `release` method
+				left.release = () => {
+					//If the left arrow has been released, and the right arrow isn't down,
+					//and the cat isn't moving vertically:
+					//Stop the cat
+					if (!right.isDown && player.vy === 0) {
+						player.vx = 0;
+					}
+				};
+
+				//Up
+				up.press = () => {
+					player.vy = -3;
+					player.vx = 0;
+				};
+				up.release = () => {
+					if (!down.isDown && player.vx === 0) {
+						player.vy = 0;
+					}
+				};
+
+				//Right
+				right.press = () => {
+					player.vx = 3;
+					player.vy = 0;
+				};
+				right.release = () => {
+					if (!left.isDown && player.vy === 0) {
+						player.vx = 0;
+					}
+				};
+
+				//Down
+				down.press = () => {
+					player.vy = 3;
+					player.vx = 0;
+				};
+				down.release = () => {
+					if (!up.isDown && player.vx === 0) {
+						player.vy = 0;
+					}
+				};
+
+
+				//Set the game state
+				state = play;
+
+				//Start the game loop
+				app.ticker.add(delta => gameLoop(delta));
+			}
+			
+			//The `randomInt` helper function
+			function randomInt(min, max) {
+				return Math.floor(Math.random() * (max - min + 1)) + min;
+			}
+			
+			//Update the current game state:
+			function gameLoop(delta){
+				state(delta);
+			}
+
+			//Use the cat's velocity to make it move
+			function play(delta) {
+				player.x += player.vx;
+				player.y += player.vy
+				
+				//check for a collision between the cat and the box
+				if (hitTestRectangle(player, player2)) {
+					//if there's a collision, change the message text
+					//and tint the box red
+					message.text = "hit!";
+				} else {
+					//if there's no collision, reset the message
+					//text and the box's color
+					message.text = "No collision...";
+				}
+				
+			}
+			
+			
+			
+			
+			
+			
+			//FIXED CODE
+			//The `keyboard` helper function / fixed code
+			function keyboard(keyCode) {
+				var key = {};
+				key.code = keyCode;
+				key.isDown = false;
+				key.isUp = true;
+				key.press = undefined;
+				key.release = undefined;
+				//The `downHandler`
+				key.downHandler = event => {
+					if (event.keyCode === key.code) {
+						if (key.isUp && key.press) key.press();
+						key.isDown = true;
+						key.isUp = false;
+					}
+					event.preventDefault();
+				};
+				//The `upHandler`
+				key.upHandler = event => {
+					if (event.keyCode === key.code) {
+						if (key.isDown && key.release) key.release();
+						key.isDown = false;
+						key.isUp = true;
+					}
+					event.preventDefault();
+				};
+				//Attach event listeners
+				window.addEventListener(
+					"keydown", key.downHandler.bind(key), false
+				);
+				window.addEventListener(
+					"keyup", key.upHandler.bind(key), false
+				);
+				return key;
+			}
+			
+			
+			//FIXED CIDE
+			function hitTestRectangle(r1, r2) {
+				//Define the variables we'll need to calculate
+				let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
+
+				//hit will determine whether there's a collision
+				hit = false;
+
+				//Find the center points of each sprite
+				r1.centerX = r1.x + r1.width / 2;
+				r1.centerY = r1.y + r1.height / 2;
+				r2.centerX = r2.x + r2.width / 2;
+				r2.centerY = r2.y + r2.height / 2;
+
+				//Find the half-widths and half-heights of each sprite
+				r1.halfWidth = r1.width / 2;
+				r1.halfHeight = r1.height / 2;
+				r2.halfWidth = r2.width / 2;
+				r2.halfHeight = r2.height / 2;
+
+				//Calculate the distance vector between the sprites
+				vx = r1.centerX - r2.centerX;
+				vy = r1.centerY - r2.centerY;
+
+				//Figure out the combined half-widths and half-heights
+				combinedHalfWidths = r1.halfWidth + r2.halfWidth;
+				combinedHalfHeights = r1.halfHeight + r2.halfHeight;
+
+				//Check for a collision on the x axis
+				if (Math.abs(vx) < combinedHalfWidths) {
+
+					//A collision might be occurring. Check for a collision on the y axis
+					if (Math.abs(vy) < combinedHalfHeights) {
+
+						//There's definitely a collision happening
+						hit = true;
+					} else {
+
+						//There's no collision on the y axis
+						hit = false;
+					}
+				} else {
+
+					//There's no collision on the x axis
+					hit = false;
+				}
+
+				//`hit` will be either `true` or `false`
+				return hit;
+			};
+			
+			
+		</script>
+	</body>
+</html>
