@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Hello World</title>
+		<style>* {padding: 0; margin: 0}</style>
+	</head>
+	<script src="js/pixi.min.js"></script>
+	<body>
+		<script type="text/javascript">
+			//Aliases
+			let Application = PIXI.Application,
+				Container = PIXI.Container,
+				loader = PIXI.loader,
+				resources = PIXI.loader.resources,
+				TextureCache = PIXI.utils.TextureCache,
+				Sprite = PIXI.Sprite,
+				Rectangle = PIXI.Rectangle;
+			
+			//Create a Pixi Application / set up canvas
+			let app = new Application({
+				width: 500,         // default: 800
+				height: 500,        // default: 600
+				antialias: true,    // default: false
+				transparent: false, // default: false
+				resolution: 1       // default: 1
+			});
+			document.body.appendChild(app.view);
+			app.renderer.backgroundColor = 0x061639;
+			
+			
+			PIXI.loader
+				.add("images/sprites/data.json")
+				.load(setup);
+			
+			let player1, player2, treasure;
+			
+			function setup() {
+				
+				//Container
+				//grouping sprites is declaring each variable or sprite to group them all together in a container. so u can call them all in just one call
+				
+				let id = loader.resources["images/sprites/data.json"].textures;
+				
+				player1 = new Sprite(id["player.png"]);
+				player1.position.set(16, 16);
+				
+				//The hedgehog
+				player2 = new Sprite(id["player2.png"]);
+				player2.position.set(32, 32);
+
+				//The tiger
+				treasure = new Sprite(id["treasure.png"]);
+				treasure.position.set(64, 64);
+				
+				
+				//ParticleContainer
+				let players = new Container();
+				
+				//ops!
+				//Pixi has an alternative, high-performance way to group sprites called a ParticleContainer
+				//Any sprites inside a ParticleContainer will render 2 to 5 times faster than they would if they were in a regular Container
+				/*let players = new PIXI.particles.ParticleContainer(
+					PIXI.size,
+					{
+						rotation: true,
+						alphaAndtint: true,
+						scale: true,
+						uvs: true
+					}
+				);*/
+				
+				
+				players.addChild(player1);
+				players.addChild(player2);
+				players.addChild(treasure);
+				
+				app.stage.addChild(players);
+				
+				//Because the animals group is just like any other sprite, you can change its x and y values, alpha, scale and all the other sprite properties
+				//example
+				players.position.set(64, 64);
+				console.log(players.width);
+				console.log(players.height);
+				
+				console.log(player2.getGlobalPosition().x); //position will be base on canvas starting point not in players container
+				
+				console.log(player1.toLocal(player1.position, player2).x) //i dont understand this //Use toLocal to find the distance between a sprite and any other sprite. Here's how you could find out the tiger's local position, relative to the hedgehog.
+			}
+			
+			
+			
+			
+		</script>
+	</body>
+</html>

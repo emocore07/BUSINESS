@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Hello World</title>
+		<style>* {padding: 0; margin: 0}</style>
+	</head>
+	<script src="js/pixi.min.js"></script>
+	<body>
+		<script type="text/javascript">
+			//Aliases
+			let Application = PIXI.Application,
+				Container = PIXI.Container,
+				loader = PIXI.loader,
+				resources = PIXI.loader.resources,
+				TextureCache = PIXI.utils.TextureCache,
+				Sprite = PIXI.Sprite,
+				Rectangle = PIXI.Rectangle;
+			
+			//Create a Pixi Application / set up canvas
+			let app = new Application({
+				width: 500,         // default: 800
+				height: 500,        // default: 600
+				antialias: true,    // default: false
+				transparent: false, // default: false
+				resolution: 1       // default: 1
+			});
+			document.body.appendChild(app.view);
+			app.renderer.backgroundColor = 0x061639;
+			
+			
+			PIXI.loader
+				.add("images/sprites/data.json")
+				.load(setup);
+			
+			let dungeon, explorer, treasure, id, door;
+			
+			function setup() {
+
+				let id = loader.resources["images/sprites/data.json"].textures;
+				
+				dungeon = new Sprite(id["dungeon.png"]);
+				app.stage.addChild(dungeon);
+				
+				player = new Sprite(id["player.png"]);
+				app.stage.addChild(player);
+				player.x = 50;
+				player.y = app.stage.height / 2 - player.height / 2;
+				
+				treasure = new Sprite(id["treasure.png"]);
+				app.stage.addChild(treasure);
+				//Position the treasure next to the right edge of the canvas
+				treasure.x = app.stage.width - treasure.width - 48;
+				treasure.y = app.stage.height / 2 - treasure.height / 2;
+				app.stage.addChild(treasure);
+				
+				//Make the exit door
+				door = new Sprite(id["door.png"]);
+				door.position.set(26, 0);
+				app.stage.addChild(door);
+
+				
+				//Make the player 2 - enemy
+				let numberOfPlayer2 = 6,
+					spacing = 48,
+					xOffset = 150;
+				
+				//Make as many player 2 as there are `numberOfPlayer2`
+				for (let i = 0; i < numberOfPlayer2; i++) {
+
+					//Make a player 2
+					let player2 = new Sprite(id["player2.png"]);
+
+					//Space each player 2 horizontally according to the `spacing` value.
+					//`xOffset` determines the point from the left of the screen
+					//at which the first player 2 should be added.
+					let x = spacing * i + xOffset;
+
+					//Give the player 2 a random y position
+					//(`randomInt` is a custom function - see below)
+					let y = randomInt(0, app.stage.height - player2.height);
+
+					//Set the player 2's position
+					player2.x = x;
+					player2.y = y;
+
+					//Add the player 2 sprite to the stage
+					app.stage.addChild(player2);
+					
+					//Start the game loop
+					app.ticker.add(delta => gameLoop(delta));
+				}
+			}
+			
+			//The `randomInt` helper function
+			function randomInt(min, max) {
+				return Math.floor(Math.random() * (max - min + 1)) + min;
+			}
+			
+			//Set the game state
+			let state = play;
+			
+			function gameLoop(delta){
+				//Update the current game state:
+				state(delta);
+			}
+			
+			function play(delta) {
+				//Move the cat 1 pixel to the right each frame
+				player.vx = 1
+				player.x += player.vx;
+			}
+			
+			
+			
+		</script>
+	</body>
+</html>
